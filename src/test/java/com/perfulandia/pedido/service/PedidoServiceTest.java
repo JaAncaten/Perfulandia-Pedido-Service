@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -281,4 +282,50 @@ class PedidoServiceTest {
         assertEquals("No se puede cancelar un pedido entregado", exception.getMessage());
         verify(pedidoRepository, never()).save(any(Pedido.class));
     }
+
+
+
+
+    @Test
+        void actualizarEstado_pedidoEntregado_deberiaLanzarReglaNegocioException() {
+         Pedido pedido = Pedido.builder()
+            .idPedido(1L)
+            .idUsuario(1L)
+            .idTienda(1L)
+            .estado(EstadoPedido.ENTREGADO)
+            .total(10000)
+            .build();
+
+        ActualizarEstadoPedidoRequest request = new ActualizarEstadoPedidoRequest();
+        request.setEstado(EstadoPedido.CONFIRMADO);
+
+        when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
+
+                ReglaNegocioException exception = assertThrows(
+                ReglaNegocioException.class,
+            () -> pedidoService.actualizarEstado(1L, request)
+        );
+
+         assertEquals("No se puede modificar un pedido entregado", exception.getMessage());
+
+         verify(pedidoRepository, never()).save(any(Pedido.class));
+        }
+
+
+        @Test
+        void crearPedido_conDetallesNull_deberiaLanzarReglaNegocioException() {
+        CrearPedidoRequest request = new CrearPedidoRequest();
+        request.setIdUsuario(1L);
+        request.setIdTienda(1L);
+         request.setDetalles(null);
+
+        ReglaNegocioException exception = assertThrows(
+            ReglaNegocioException.class,
+            () -> pedidoService.crearPedido(request)
+        );
+
+         assertEquals("El pedido debe tener al menos un producto", exception.getMessage());
+
+         verify(pedidoRepository, never()).save(any(Pedido.class));
+        }
 }
