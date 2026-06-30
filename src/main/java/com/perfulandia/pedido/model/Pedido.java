@@ -37,6 +37,7 @@ public class Pedido {
     @Column(nullable = false)
     private Integer total;
 
+    @Builder.Default
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetallePedido> detalles = new ArrayList<>();
 }
